@@ -23,4 +23,9 @@ func Initiate() {
 	log.Info(context.Background(), "initializing database")
 	InitDB(context.Background(), viper.GetString("db.url"), log)
 	log.Info(context.Background(), "database initialized")
+
+	log.Info(context.Background(),"initializing migration")
+	m := InitMigration(context.Background(),viper.GetString("db.url"),log)
+	UpMigration(context.Background(),m,log)
+	log.Info(context.Background(),"initialized migration")
 }
