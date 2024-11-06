@@ -1,14 +1,18 @@
 package initiator
 
 import (
-	"context"
+	persistencedb "go-clean-architecture/internal/constant/model/persistenceDB"
+	"go-clean-architecture/internal/storage"
+	"go-clean-architecture/internal/storage/user"
 	"go-clean-architecture/platform/logger"
 )
 
+type Persistence struct {
+	user storage.User
+}
 
-
-
-
-func InitPersistence(ctx context.Context,log logger.Logger){
-	
+func InitPersistence(db persistencedb.PersistenceDB, log logger.Logger) Persistence {
+	return Persistence{
+		user: user.Init(db,log),
+	}
 }

@@ -3,6 +3,7 @@ package initiator
 import (
 	"context"
 	"fmt"
+	persistencedb "go-clean-architecture/internal/constant/model/persistenceDB"
 	"net/http"
 	"os"
 	"os/signal"
@@ -28,7 +29,7 @@ func Initiate() {
 	sampleLog.Info("logger initialized")
 
 	log.Info(context.Background(), "initializing database")
-	InitDB(context.Background(), viper.GetString("db.url"), log)
+	pool := InitDB(context.Background(), viper.GetString("db.url"), log)
 	log.Info(context.Background(), "database initialized")
 
 	log.Info(context.Background(), "initializing migration")
@@ -37,51 +38,52 @@ func Initiate() {
 	log.Info(context.Background(), "initialized migration")
 
 	log.Info(context.Background(), "initializing persistence")
-	InitPersistence(context.Background(), log)
+	persistence := InitPersistence(persistencedb.New(pool), log)
 	log.Info(context.Background(), "initialized persistence")
 
 	log.Info(context.Background(), "initializing module")
-	InitModule(context.Background(), log)
+	module := InitModule(persistence, log)
 	log.Info(context.Background(), "module initialized")
 
 	log.Info(context.Background(), "initializing handler")
-	InitHandler(context.Background(), log)
+	handler := InitHandler(module, log)
 	log.Info(context.Background(), "handler initialized")
 
 	log.Info(context.Background(), "initializing server")
 	server := gin.New()
 	server.Use(ginzap.RecoveryWithZap(log.GetZapLogger().Named("gin"), true))
-	log.Info(context.Background(),"server initialized")
+	log.Info(context.Background(), "server initialized")
 
-	log.Info(context.Background(),"initializing route")
-	server.Group("/v1")
-	InitRoute()
-	log.Info(context.Background(),"route initialized")
+	log.Info(context.Background(), "initializing route")
+	group := server.Group("/v1")
+	InitRoute(group,handler)
+	log.Info(context.Background(), "route initialized")
 
-	log.Info(context.Background(),"initializing http server")
+	log.Info(context.Background(), "initializing http server")
 	srv := &http.Server{
-		Addr: viper.GetString("server.host")+":" + viper.GetString("server.port"),
+		Addr:    viper.GetString("server.host") + ":" + viper.GetString("server.port"),
 		Handler: server,
 	}
 
-	quit := make(chan os.Signal,1)
-	signal.Notify(quit,os.Interrupt)
-	signal.Notify(quit,syscall.SIGTERM)
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
+	signal.Notify(quit, syscall.SIGTERM)
 
-	go func ()  {
-		log.Info(context.Background(),"server started",
-			zap.String("host",viper.GetString("server.host")),
-			zap.String("port",viper.GetString("server.port")),
-		)	
-		log.Info(context.Background(),fmt.Sprintf("server stopped with error %v",srv.ListenAndServe()))
+	go func() {
+		log.Info(context.Background(), "server started",
+			zap.String("host", viper.GetString("server.host")),
+			zap.String("port", viper.GetString("server.port")),
+		)
+		log.Info(context.Background(), fmt.Sprintf("server stopped with error %v", srv.ListenAndServe()))
 	}()
 	sig := <-quit
-	log.Info(context.Background(),fmt.Sprintf("server shutting down with signal %v",sig))
-	ctx,cancel := context.WithTimeout(context.Background(),viper.GetDuration("server.timeout"))
+	log.Info(context.Background(), fmt.Sprintf("server shutting down with signal %v", sig))
+	ctx, cancel := context.WithTimeout(context.Background(), viper.GetDuration("server.timeout"))
 	defer cancel()
 
-	if err := srv.Shutdown(ctx); err!= nil{
-		log.Fatal(context.Background(),"error while shutting down server",zap.Error(err))
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatal(context.Background(), "error while shutting down server", zap.Error(err))
 	}
-	log.Info(context.Background(),"server shutdown successfully")
+
+	log.Info(context.Background(), "server shutdown successfully")
 }

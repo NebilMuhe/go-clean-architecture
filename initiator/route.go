@@ -1,6 +1,12 @@
 package initiator
 
+import (
+	"go-clean-architecture/internal/glue/routing/user"
 
-func InitRoute(){
-	
+	"github.com/gin-gonic/gin"
+)
+
+
+func InitRoute(group *gin.RouterGroup,handler Handler){
+	user.InitRoute(group,handler.user)
 }
