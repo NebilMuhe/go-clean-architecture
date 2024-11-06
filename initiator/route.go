@@ -1,1 +1,6 @@
 package initiator
+
+
+func InitRoute(){
+	
+}
