@@ -1,11 +1,13 @@
 package user
 
 import (
+	"go-clean-architecture/internal/constant/model/dto"
 	"go-clean-architecture/internal/handler"
 	"go-clean-architecture/internal/module"
 	"go-clean-architecture/platform/logger"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type UserHandler struct {
@@ -14,18 +16,25 @@ type UserHandler struct {
 }
 
 func Init(module module.User, log logger.Logger) handler.UserHandler {
-	return UserHandler{
+	return &UserHandler{
 		userModule: module,
 		log:        log,
 	}
 }
 
-// Login implements handler.UserHandler.
-func (u UserHandler) Login(ctx *gin.Context) {
-	panic("unimplemented")
+
+func (u *UserHandler) SignUp(ctx *gin.Context) {
+	var user dto.User
+	if err := ctx.ShouldBind(&user); err != nil{
+		u.log.Error(ctx,"failed to bind user details",zap.Error(err))
+		_ = ctx.Error(err)
+		ctx.Abort()
+	}
+	u.userModule.SignUp(ctx,user)
 }
 
-// SignUp implements handler.UserHandler.
-func (u UserHandler) SignUp(ctx *gin.Context) {
-	panic("unimplemented")
+func (u *UserHandler) Login(ctx *gin.Context) {
 }
+
+
+
