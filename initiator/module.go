@@ -7,11 +7,11 @@ import (
 )
 
 type Module struct {
-	user     module.User
+	user module.User
 }
 
 func InitModule(persistence Persistence, platform Platform, log logger.Logger) Module {
 	return Module{
-		user:     user.Init(persistence.user, platform,log),
+		user: user.Init(persistence.user, platform.token, log),
 	}
 }
