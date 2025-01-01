@@ -37,12 +37,16 @@ func Initiate() {
 	UpMigration(context.Background(), m, log)
 	log.Info(context.Background(), "initialized migration")
 
+	log.Info(context.Background(), "initializing platform layer")
+	platform := InitPlatform(context.Background(), log, viper.GetString("platform.secret_key"))
+	log.Info(context.Background(), "platform layer initialized")
+
 	log.Info(context.Background(), "initializing persistence")
 	persistence := InitPersistence(persistencedb.New(pool), log)
 	log.Info(context.Background(), "initialized persistence")
 
 	log.Info(context.Background(), "initializing module")
-	module := InitModule(persistence, log)
+	module := InitModule(persistence, platform, log)
 	log.Info(context.Background(), "module initialized")
 
 	log.Info(context.Background(), "initializing handler")
@@ -56,7 +60,7 @@ func Initiate() {
 
 	log.Info(context.Background(), "initializing route")
 	group := server.Group("/v1")
-	InitRoute(group,handler)
+	InitRoute(group, handler)
 	log.Info(context.Background(), "route initialized")
 
 	log.Info(context.Background(), "initializing http server")
