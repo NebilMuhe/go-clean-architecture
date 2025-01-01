@@ -7,5 +7,6 @@ import (
 
 type User interface {
 	SignUp(ctx context.Context, user dto.User) (dto.UserResponse,error)
-	Login(ctx context.Context, email, password string)
+	UserExist(ctx context.Context, email string) (bool,error)
+	GetUserByEmail(ctx context.Context, email string) (dto.UserResponse,error)
 }

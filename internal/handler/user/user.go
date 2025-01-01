@@ -29,11 +29,22 @@ func (u *UserHandler) SignUp(ctx *gin.Context) {
 		u.log.Error(ctx,"failed to bind user details",zap.Error(err))
 		_ = ctx.Error(err)
 		ctx.Abort()
+		return
 	}
 	u.userModule.SignUp(ctx,user)
 }
 
 func (u *UserHandler) Login(ctx *gin.Context) {
+	var user dto.User
+
+	if err := ctx.ShouldBind(&user); err != nil {
+		u.log.Error(ctx,"failed to bind user details",zap.Error(err))
+		_ = ctx.Error(err)
+		ctx.Abort()
+		return
+	}
+
+	u.userModule.Login(ctx,user)
 }
 
 

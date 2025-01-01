@@ -6,6 +6,6 @@ import (
 )
 
 type User interface {
-	SignUp(ctx context.Context, user dto.User) (dto.UserResponse,error)
-	Login(ctx context.Context, email, password string)
+	SignUp(ctx context.Context, user dto.User) (dto.UserResponse, error)
+	Login(ctx context.Context, user dto.User) (dto.Token, error)
 }

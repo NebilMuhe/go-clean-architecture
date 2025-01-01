@@ -18,7 +18,8 @@ type UserResponse struct {
 
 func (u *User) Validate() error {
 	return validation.ValidateStruct(&u,
-		validation.Field(&u.Email, validation.Required, is.Email),
-		validation.Field(&u.Password, validation.Required),
+		validation.Field(&u.Email, validation.Required.Error("email is required"), is.Email.Error("email is not valid")),
+		validation.Field(&u.Password, validation.Required.Error("password is required"),
+			validation.Length(8, 20).Error("password must be at least 8 characters long")),
 	)
 }
